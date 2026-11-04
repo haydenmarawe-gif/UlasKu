@@ -1,0 +1,19 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"><title>Admin – UlasKu</title><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script></head><body><main class="box wide">
+<div class="noprint"><h1>Admin kartu NFC</h1><p>Buat kode unik untuk setiap kartu. Satu kode = satu kartu = satu QR = satu isi chip NFC.</p>
+<div class="row"><div><label for="k">Admin key</label><input id="k" type="password"></div><div><label for="n">Jumlah kartu</label><input id="n" type="number" min="1" max="500" value="10"></div><div><label for="bt">Nama batch (opsional)</label><input id="bt" placeholder="Batch 1"></div></div>
+<div class="row"><button id="g">Buat kode baru</button><button id="l" class="ghost">Lihat semua kartu</button></div><div id="m" class="msg"></div></div>
+<div id="out" class="hide"><div class="row noprint" style="margin-top:16px"><button id="csv" class="ghost">Unduh CSV (untuk tulis NFC)</button><button id="pr" class="ghost">Cetak lembar QR</button></div><div class="grid" id="grid"></div></div>
+<div id="tb" class="hide" style="overflow-x:auto;margin-top:16px"><table><thead><tr><th>Kode</th><th>Status</th><th>Bisnis</th><th>Batch</th><th>Dipakai</th></tr></thead><tbody id="tbody"></tbody></table></div>
+</main><script src="/app.js"></script><script>
+const $=i=>document.getElementById(i);let codes=[];const H=()=>({'x-admin-key':$('k').value});
+const url=c=>location.origin+'/r/'+c;
+function qr(t){const q=qrcode(0,'M');q.addData(t);q.make();return q.createSvgTag({cellSize:4,margin:2,scalable:true})}
+$('g').onclick=async()=>{try{const d=await api({action:'generate',count:$('n').value,batch:$('bt').value},'/api/admin',H());codes=d.codes;
+ $('grid').innerHTML=codes.map(c=>'<div class="tag">'+qr(url(c))+'<div class="code" style="margin-top:6px;display:inline-block">'+c+'</div></div>').join('');
+ $('out').classList.remove('hide');$('tb').classList.add('hide');show($('m'),'ok',codes.length+' kode dibuat.')}catch(x){show($('m'),'err',x.message)}};
+$('l').onclick=async()=>{try{const d=await api({action:'list'},'/api/admin',H());$('out').classList.add('hide');$('tb').classList.remove('hide');
+ $('tbody').innerHTML=d.rows.map(r=>'<tr><td><span class="code">'+r.code+'</span></td><td>'+(r.active?'Aktif':'Belum aktif')+'</td><td>'+(r.name||'-').replace(/</g,'&lt;')+'</td><td>'+(r.batch||'-').replace(/</g,'&lt;')+'</td><td>'+r.scans+'</td></tr>').join('')||'<tr><td colspan=5>Belum ada kartu.</td></tr>';
+ show($('m'),'ok',d.rows.length+' kartu.')}catch(x){show($('m'),'err',x.message)}};
+$('csv').onclick=()=>{const b=new Blob(['kode,url\n'+codes.map(c=>c+','+url(c)).join('\n')],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='kartu-nfc.csv';a.click()};
+$('pr').onclick=()=>print();
+</script></body></html>

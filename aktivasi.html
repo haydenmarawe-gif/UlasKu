@@ -1,0 +1,25 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"><title>Aktifkan kartu – UlasKu</title></head><body><main class="box">
+<div class="stars" aria-hidden="true">★★★★★</div>
+<h1 id="h">Aktifkan kartu review Anda</h1>
+<p id="sub">Isi sekali saja. Setelah aktif, pelanggan yang tap atau scan kartu langsung masuk ke halaman review Google bisnis Anda.</p>
+<div class="hide" id="bad"><p>Kode kartu <span class="code" id="c0"></span> tidak ditemukan. Cek lagi kartu Anda atau hubungi penjual.</p></div>
+<div class="hide" id="done"><p>Kartu <span class="code" id="c1"></span> sudah aktif. Untuk mengubah data, buka Kelola kartu.</p><button onclick="location.href='/kelola-kartu?code='+C">Kelola kartu</button></div>
+<form id="f" class="hide" autocomplete="off">
+<p>Kode kartu: <span class="code" id="c2"></span></p>
+<label for="n">Nama bisnis</label><input id="n" maxlength="80" placeholder="Contoh: Kopi Senja" required>
+<label for="u">Link Google Review</label><input id="u" type="url" inputmode="url" placeholder="https://g.page/r/..." required>
+<small>Cara dapat link: Google Maps → Profil Bisnis Anda → Minta ulasan → Salin link.</small>
+<label for="p">PIN (4–6 angka)</label><input id="p" inputmode="numeric" pattern="\d{4,6}" maxlength="6" type="password" required>
+<small>PIN dipakai untuk mengubah atau mereset kartu nanti. Simpan baik-baik.</small>
+<button id="b">Aktifkan kartu</button><div id="m" class="msg" role="status"></div></form>
+<div class="hide" id="ok"><div class="msg ok" style="display:block">Kartu aktif. Coba tap kartunya sekarang.</div><button onclick="location.href='/r/'+C">Tes kartu</button></div>
+</main><script src="/app.js"></script><script>
+const C=parseCode(new URLSearchParams(location.search).get('code')||'');const $=i=>document.getElementById(i);
+['c0','c1','c2'].forEach(i=>$(i).textContent=C);
+(async()=>{try{const s=await api({action:'status',code:C});
+ if(s.active){$('h').textContent='Kartu sudah aktif';$('sub').classList.add('hide');$('done').classList.remove('hide')}else $('f').classList.remove('hide')
+}catch(e){$('sub').classList.add('hide');$('bad').classList.remove('hide')}})();
+$('f').onsubmit=async e=>{e.preventDefault();$('b').disabled=true;
+ try{await api({action:'activate',code:C,name:$('n').value,reviewUrl:$('u').value,pin:$('p').value});$('f').classList.add('hide');$('ok').classList.remove('hide')}
+ catch(x){show($('m'),'err',x.message)}$('b').disabled=false};
+</script></body></html>
